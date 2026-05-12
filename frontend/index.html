@@ -6,15 +6,18 @@
   <title>Sales Forecasting Dashboard</title>
   <style>
     :root {
-      --bg: #f7f8fb;
+      --bg: #f3f6fb;
       --panel: #ffffff;
-      --ink: #1f2937;
-      --muted: #687385;
-      --line: #d9dee8;
-      --blue: #2563eb;
-      --green: #0f9f6e;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d8dee9;
+      --line-strong: #c4ccd9;
+      --blue: #2457d6;
+      --blue-dark: #1d45aa;
+      --green: #07835f;
       --amber: #b45309;
-      --red: #dc2626;
+      --red: #c92a2a;
+      --shadow: 0 14px 36px rgba(23, 32, 51, 0.08);
     }
 
     * {
@@ -23,6 +26,7 @@
 
     body {
       margin: 0;
+      min-height: 100vh;
       background: var(--bg);
       color: var(--ink);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -30,79 +34,90 @@
     }
 
     header {
-      border-bottom: 1px solid var(--line);
       background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
-    .wrap {
-      max-width: 1180px;
+    .wrap,
+    main {
+      width: min(94vw, 1680px);
       margin: 0 auto;
-      padding: 18px 20px;
     }
 
     .topbar {
+      min-height: 92px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 24px;
     }
 
     h1 {
       margin: 0;
-      font-size: 24px;
-      font-weight: 750;
+      font-size: clamp(30px, 2.2vw, 42px);
+      font-weight: 800;
+      line-height: 1.05;
     }
 
     .subtle {
+      margin-top: 8px;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 17px;
     }
 
     main {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 22px 20px 36px;
+      padding: 26px 0 42px;
     }
 
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(220px, 1fr) 150px auto auto;
-      gap: 12px;
+      grid-template-columns: minmax(280px, 1fr) 180px auto auto;
+      gap: 14px;
       align-items: end;
       margin-bottom: 18px;
     }
 
     label {
       display: grid;
-      gap: 6px;
+      gap: 7px;
       color: var(--muted);
-      font-size: 13px;
-      font-weight: 650;
+      font-size: 14px;
+      font-weight: 750;
     }
 
     select,
     input,
     button {
-      height: 40px;
-      border: 1px solid var(--line);
+      height: 48px;
+      border: 1px solid var(--line-strong);
       background: var(--panel);
       color: var(--ink);
-      border-radius: 6px;
+      border-radius: 8px;
       font: inherit;
+      font-size: 16px;
     }
 
     select,
     input {
-      padding: 0 10px;
+      padding: 0 14px;
     }
 
     button {
-      padding: 0 14px;
-      border-color: #1d4ed8;
+      padding: 0 18px;
+      border-color: var(--blue);
       background: var(--blue);
       color: white;
       cursor: pointer;
-      font-weight: 700;
+      font-weight: 800;
+      transition: transform 0.12s ease, background 0.12s ease;
+    }
+
+    button:hover {
+      background: var(--blue-dark);
+      transform: translateY(-1px);
     }
 
     button.secondary {
@@ -110,98 +125,83 @@
       color: var(--blue);
     }
 
+    button.secondary:hover {
+      background: #eef4ff;
+    }
+
+    .horizon-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+
+    .horizon {
+      height: 38px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--blue);
+      border: 1px solid var(--line-strong);
+      font-size: 14px;
+    }
+
+    .horizon.active {
+      background: var(--blue);
+      color: white;
+      border-color: var(--blue);
+    }
+
     .grid {
       display: grid;
-      grid-template-columns: 1.8fr 1fr;
-      gap: 18px;
+      grid-template-columns: minmax(0, 2.1fr) minmax(380px, 0.9fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .stack {
+      display: grid;
+      gap: 20px;
     }
 
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 16px;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: var(--shadow);
     }
 
-    .panel h2 {
-      margin: 0 0 14px;
-      font-size: 16px;
-    }
-
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
       margin-bottom: 16px;
     }
 
-    .metric {
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 12px;
-      min-height: 78px;
+    .panel h2 {
+      margin: 0;
+      font-size: 21px;
+      line-height: 1.2;
     }
 
-    .metric span {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .metric strong {
-      font-size: 20px;
-    }
-
-    .chart {
-      width: 100%;
-      min-height: 360px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    svg {
-      display: block;
-      width: 100%;
-      height: 360px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    th,
-    td {
-      border-bottom: 1px solid var(--line);
-      padding: 10px 8px;
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    th {
-      color: var(--muted);
-      font-size: 12px;
-      text-transform: uppercase;
-    }
-
-    .status {
+    .badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 10px;
+      padding: 8px 12px;
       border: 1px solid var(--line);
       border-radius: 999px;
-      font-size: 13px;
       color: var(--muted);
+      font-size: 14px;
+      font-weight: 750;
+      white-space: nowrap;
     }
 
     .dot {
-      width: 8px;
-      height: 8px;
+      width: 9px;
+      height: 9px;
       border-radius: 999px;
       background: var(--amber);
     }
@@ -210,13 +210,133 @@
       background: var(--green);
     }
 
-    .error {
-      color: var(--red);
-      font-weight: 700;
-      margin-top: 10px;
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
     }
 
-    @media (max-width: 860px) {
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 104px;
+      background: #fbfcff;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      font-size: clamp(24px, 1.8vw, 32px);
+      line-height: 1;
+    }
+
+    .chart {
+      width: 100%;
+      min-height: 520px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: white;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 520px;
+    }
+
+    .message {
+      min-height: 24px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .message.error {
+      color: var(--red);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .number {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .details {
+      display: grid;
+      gap: 11px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
+    }
+
+    .detail-row strong {
+      color: var(--ink);
+      text-align: right;
+    }
+
+    .notice {
+      padding: 13px 14px;
+      border: 1px solid #f0c36d;
+      background: #fff8e8;
+      color: #7a4b00;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      display: none;
+    }
+
+    .json-box {
+      max-height: 210px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #111827;
+      color: #d1fae5;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 1100px) {
       .toolbar,
       .grid,
       .metrics {
@@ -226,6 +346,7 @@
       .topbar {
         align-items: flex-start;
         flex-direction: column;
+        padding: 16px 0;
       }
     }
   </style>
@@ -235,13 +356,15 @@
     <div class="wrap topbar">
       <div>
         <h1>Sales Forecasting Dashboard</h1>
-        <div class="subtle">State-level weekly forecasts, model comparison, and service health</div>
+        <div class="subtle">Forecast next-week sales, inspect winning models, and verify API health</div>
       </div>
-      <div class="status"><span id="health-dot" class="dot"></span><span id="health-text">Checking service</span></div>
+      <div class="badge"><span id="health-dot" class="dot"></span><span id="health-text">Checking service</span></div>
     </div>
   </header>
 
   <main>
+    <div id="training-notice" class="notice"></div>
+
     <section class="toolbar">
       <label>
         State
@@ -251,30 +374,82 @@
         Weeks
         <input id="weeks-input" type="number" min="1" max="52" value="8">
       </label>
-      <button id="forecast-button">Forecast</button>
-      <button id="bulk-button" class="secondary">Bulk Sample</button>
+      <button id="forecast-button">Run Forecast</button>
+      <button id="bulk-button" class="secondary">Bulk API Demo</button>
+    </section>
+
+    <section class="horizon-bar" aria-label="Forecast horizon shortcuts">
+      <button class="horizon" data-weeks="4">4 weeks</button>
+      <button class="horizon active" data-weeks="8">8 weeks</button>
+      <button class="horizon" data-weeks="12">12 weeks</button>
+      <button class="horizon" data-weeks="26">26 weeks</button>
     </section>
 
     <section class="grid">
-      <div class="panel">
-        <h2>Forecast</h2>
-        <div class="metrics">
-          <div class="metric"><span>Best Model</span><strong id="metric-model">-</strong></div>
-          <div class="metric"><span>MAPE</span><strong id="metric-mape">-</strong></div>
-          <div class="metric"><span>RMSE</span><strong id="metric-rmse">-</strong></div>
+      <div class="stack">
+        <div class="panel">
+          <div class="panel-title">
+            <h2 id="forecast-title">Forecast</h2>
+            <span class="badge" id="forecast-badge">Waiting</span>
+          </div>
+          <div class="metrics">
+            <div class="metric"><span>Best Model</span><strong id="metric-model">-</strong></div>
+            <div class="metric"><span>MAPE</span><strong id="metric-mape">-</strong></div>
+            <div class="metric"><span>RMSE</span><strong id="metric-rmse">-</strong></div>
+            <div class="metric"><span>Average Forecast</span><strong id="metric-average">-</strong></div>
+          </div>
+          <div class="chart"><svg id="forecast-chart" role="img" aria-label="Forecast chart"></svg></div>
+          <div id="message" class="message"></div>
         </div>
-        <div class="chart"><svg id="forecast-chart" role="img" aria-label="Forecast chart"></svg></div>
-        <div id="message" class="error"></div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <h2>Model Leaderboard</h2>
+            <span class="badge">Validation MAPE</span>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Model</th><th class="number">MAPE</th><th class="number">RMSE</th><th class="number">Train Time</th></tr>
+            </thead>
+            <tbody id="leaderboard-table"></tbody>
+          </table>
+        </div>
       </div>
 
-      <div class="panel">
-        <h2>Forecast Values</h2>
-        <table>
-          <thead>
-            <tr><th>Date</th><th>Predicted Sales</th></tr>
-          </thead>
-          <tbody id="forecast-table"></tbody>
-        </table>
+      <div class="stack">
+        <div class="panel">
+          <div class="panel-title">
+            <h2>Forecast Values</h2>
+            <span class="badge" id="row-count">0 rows</span>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Date</th><th class="number">Predicted Sales</th></tr>
+            </thead>
+            <tbody id="forecast-table"></tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <h2>Service Details</h2>
+            <span class="badge">Live API</span>
+          </div>
+          <div class="details">
+            <div class="detail-row"><span>Registry</span><strong id="detail-registry">-</strong></div>
+            <div class="detail-row"><span>Trained states</span><strong id="detail-states">-</strong></div>
+            <div class="detail-row"><span>Cache entries</span><strong id="detail-cache">-</strong></div>
+            <div class="detail-row"><span>Last modified</span><strong id="detail-modified">-</strong></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <h2>Latest API Response</h2>
+            <span class="badge">JSON</span>
+          </div>
+          <pre id="json-response" class="json-box">{}</pre>
+        </div>
       </div>
     </section>
   </main>
@@ -285,9 +460,15 @@
     const forecastButton = document.getElementById("forecast-button");
     const bulkButton = document.getElementById("bulk-button");
     const message = document.getElementById("message");
+    const horizonButtons = Array.from(document.querySelectorAll(".horizon"));
 
     const formatNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
     const formatPct = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+
+    function setMessage(text, isError = false) {
+      message.textContent = text;
+      message.className = `message ${isError ? "error" : ""}`;
+    }
 
     async function getJson(url, options) {
       const response = await fetch(url, options);
@@ -300,13 +481,14 @@
     }
 
     async function loadHealth() {
-      try {
-        const health = await getJson("/health/detailed");
-        document.getElementById("health-dot").className = `dot ${health.status === "ok" ? "ok" : ""}`;
-        document.getElementById("health-text").textContent = `${health.status} · ${health.trained_states} trained state(s)`;
-      } catch (error) {
-        document.getElementById("health-text").textContent = "Service unavailable";
-      }
+      const health = await getJson("/health/detailed");
+      document.getElementById("health-dot").className = `dot ${health.status === "ok" ? "ok" : ""}`;
+      document.getElementById("health-text").textContent = `${health.status} · ${health.trained_states} trained state(s)`;
+      document.getElementById("detail-registry").textContent = health.registry_exists ? "Available" : "Missing";
+      document.getElementById("detail-states").textContent = health.trained_states;
+      document.getElementById("detail-cache").textContent = health.forecast_cache_entries;
+      document.getElementById("detail-modified").textContent = health.registry_last_modified_utc || "-";
+      return health;
     }
 
     async function loadStates() {
@@ -318,6 +500,32 @@
         option.textContent = state;
         stateSelect.appendChild(option);
       });
+
+      const notice = document.getElementById("training-notice");
+      if (data.count <= 1) {
+        notice.style.display = "block";
+        notice.textContent = "Demo note: only California is trained in the sample registry. Run `python3 train.py` to populate all states.";
+      } else {
+        notice.style.display = "none";
+      }
+    }
+
+    function renderLeaderboard(comparison, bestModel) {
+      const tbody = document.getElementById("leaderboard-table");
+      tbody.innerHTML = "";
+      Object.entries(comparison || {})
+        .sort(([, a], [, b]) => a.mape - b.mape)
+        .forEach(([model, metrics]) => {
+          const tr = document.createElement("tr");
+          const suffix = model === bestModel ? " (selected)" : "";
+          tr.innerHTML = `
+            <td><strong>${model}${suffix}</strong></td>
+            <td class="number">${formatPct.format(metrics.mape)}%</td>
+            <td class="number">${formatNumber.format(metrics.rmse)}</td>
+            <td class="number">${metrics.train_time_sec ?? "-"}s</td>
+          `;
+          tbody.appendChild(tr);
+        });
     }
 
     async function loadModel(state) {
@@ -326,40 +534,54 @@
       document.getElementById("metric-model").textContent = data.best_model || "-";
       document.getElementById("metric-mape").textContent = best.mape ? `${formatPct.format(best.mape)}%` : "-";
       document.getElementById("metric-rmse").textContent = best.rmse ? formatNumber.format(best.rmse) : "-";
+      renderLeaderboard(data.comparison, data.best_model);
+      return data;
     }
 
     function drawChart(rows) {
       const svg = document.getElementById("forecast-chart");
-      const width = 760;
-      const height = 360;
-      const pad = 46;
+      const width = 1120;
+      const height = 520;
+      const pad = 70;
       svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
       svg.innerHTML = "";
 
       if (!rows.length) return;
 
       const values = rows.map((row) => row.predicted_sales);
-      const min = Math.min(...values) * 0.96;
+      const min = Math.min(...values) * 0.94;
       const max = Math.max(...values) * 1.04;
       const span = Math.max(max - min, 1);
-
       const x = (i) => pad + (i * (width - pad * 2)) / Math.max(rows.length - 1, 1);
       const y = (value) => height - pad - ((value - min) * (height - pad * 2)) / span;
       const points = rows.map((row, i) => `${x(i)},${y(row.predicted_sales)}`).join(" ");
 
-      svg.insertAdjacentHTML("beforeend", `<line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" stroke="#d9dee8"/>`);
-      svg.insertAdjacentHTML("beforeend", `<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}" stroke="#d9dee8"/>`);
-      svg.insertAdjacentHTML("beforeend", `<polyline fill="none" stroke="#2563eb" stroke-width="3" points="${points}"/>`);
+      [0, 0.25, 0.5, 0.75, 1].forEach((ratio) => {
+        const gridY = pad + ratio * (height - pad * 2);
+        const value = max - ratio * span;
+        svg.insertAdjacentHTML("beforeend", `<line x1="${pad}" y1="${gridY}" x2="${width - pad}" y2="${gridY}" stroke="#e5e9f0"/>`);
+        svg.insertAdjacentHTML("beforeend", `<text x="${pad - 12}" y="${gridY + 4}" fill="#667085" font-size="13" text-anchor="end">${formatNumber.format(value)}</text>`);
+      });
+
+      svg.insertAdjacentHTML("beforeend", `<line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" stroke="#c4ccd9"/>`);
+      svg.insertAdjacentHTML("beforeend", `<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}" stroke="#c4ccd9"/>`);
+      svg.insertAdjacentHTML("beforeend", `<polyline fill="none" stroke="#2457d6" stroke-width="4" points="${points}"/>`);
 
       rows.forEach((row, i) => {
-        svg.insertAdjacentHTML("beforeend", `<circle cx="${x(i)}" cy="${y(row.predicted_sales)}" r="4" fill="#2563eb"/>`);
+        const cx = x(i);
+        const cy = y(row.predicted_sales);
+        svg.insertAdjacentHTML(
+          "beforeend",
+          `<circle cx="${cx}" cy="${cy}" r="7" fill="#2457d6" stroke="white" stroke-width="3">
+             <title>${row.date}: ${formatNumber.format(row.predicted_sales)}</title>
+           </circle>`
+        );
       });
 
       const first = rows[0].date;
       const last = rows[rows.length - 1].date;
-      svg.insertAdjacentHTML("beforeend", `<text x="${pad}" y="${height - 14}" fill="#687385" font-size="12">${first}</text>`);
-      svg.insertAdjacentHTML("beforeend", `<text x="${width - pad}" y="${height - 14}" fill="#687385" font-size="12" text-anchor="end">${last}</text>`);
-      svg.insertAdjacentHTML("beforeend", `<text x="${pad + 6}" y="${pad - 16}" fill="#687385" font-size="12">${formatNumber.format(max)}</text>`);
+      svg.insertAdjacentHTML("beforeend", `<text x="${pad}" y="${height - 24}" fill="#667085" font-size="14">${first}</text>`);
+      svg.insertAdjacentHTML("beforeend", `<text x="${width - pad}" y="${height - 24}" fill="#667085" font-size="14" text-anchor="end">${last}</text>`);
     }
 
     function renderForecast(data) {
@@ -367,27 +589,35 @@
       table.innerHTML = "";
       data.forecast.forEach((row) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${row.date}</td><td>${formatNumber.format(row.predicted_sales)}</td>`;
+        tr.innerHTML = `<td>${row.date}</td><td class="number">${formatNumber.format(row.predicted_sales)}</td>`;
         table.appendChild(tr);
       });
+
+      const avg = data.forecast.reduce((sum, row) => sum + row.predicted_sales, 0) / Math.max(data.forecast.length, 1);
+      document.getElementById("metric-average").textContent = formatNumber.format(avg);
+      document.getElementById("row-count").textContent = `${data.forecast.length} rows`;
+      document.getElementById("forecast-title").textContent = `${data.state} Forecast`;
+      document.getElementById("forecast-badge").textContent = `${data.n_periods} weeks`;
+      document.getElementById("json-response").textContent = JSON.stringify(data, null, 2);
       drawChart(data.forecast);
     }
 
     async function refreshForecast() {
-      message.textContent = "";
+      setMessage("Loading forecast...");
       const state = stateSelect.value;
       const weeks = Number(weeksInput.value || 8);
       try {
+        await loadHealth();
         await loadModel(state);
         const data = await getJson(`/forecast/${encodeURIComponent(state)}?weeks=${weeks}`);
         renderForecast(data);
+        setMessage(`Forecast generated for ${state} using ${data.model}.`);
       } catch (error) {
-        message.textContent = error.message;
+        setMessage(error.message, true);
       }
     }
 
     async function runBulkSample() {
-      message.textContent = "";
       const states = Array.from(stateSelect.options).slice(0, 3).map((option) => option.value);
       try {
         const data = await getJson("/forecast/bulk", {
@@ -395,23 +625,44 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ states, weeks: Number(weeksInput.value || 8) }),
         });
-        message.textContent = `Bulk forecast returned ${data.forecasts.length} result(s).`;
+        document.getElementById("json-response").textContent = JSON.stringify(data, null, 2);
+        setMessage(`Bulk forecast returned ${data.forecasts.length} result(s).`);
+        await loadHealth();
       } catch (error) {
-        message.textContent = error.message;
+        setMessage(error.message, true);
       }
+    }
+
+    function syncHorizonButtons() {
+      const selected = String(weeksInput.value);
+      horizonButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.weeks === selected);
+      });
     }
 
     forecastButton.addEventListener("click", refreshForecast);
     bulkButton.addEventListener("click", runBulkSample);
     stateSelect.addEventListener("change", refreshForecast);
+    weeksInput.addEventListener("change", () => {
+      syncHorizonButtons();
+      refreshForecast();
+    });
+    horizonButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        weeksInput.value = button.dataset.weeks;
+        syncHorizonButtons();
+        refreshForecast();
+      });
+    });
 
     (async function init() {
       try {
         await loadHealth();
         await loadStates();
+        syncHorizonButtons();
         await refreshForecast();
       } catch (error) {
-        message.textContent = error.message;
+        setMessage(error.message, true);
       }
     })();
   </script>
