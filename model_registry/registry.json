@@ -1,0 +1,61 @@
+{
+  "California": {
+    "state": "California",
+    "best_model": "XGBoost",
+    "best_mape": 7.8393,
+    "best_rmse": 185733238.1535,
+    "model_path": "/Users/arpan/Downloads/forecasting_system/model_registry/California_XGBoost.pkl",
+    "comparison": {
+      "SARIMA": {
+        "mape": 31.2703,
+        "rmse": 355618321.591,
+        "train_time_sec": 56.3
+      },
+      "Prophet": {
+        "mape": 44.9255,
+        "rmse": 457004704.9782,
+        "train_time_sec": 2.4
+      },
+      "XGBoost": {
+        "mape": 7.8393,
+        "rmse": 185733238.1535,
+        "train_time_sec": 1.1
+      },
+      "LSTM": {
+        "mape": 12.0001,
+        "rmse": 256379263.9238,
+        "train_time_sec": 12.3
+      }
+    },
+    "val_predictions": [
+      909771136.0,
+      836188032.0,
+      800848960.0,
+      807380608.0,
+      919365568.0,
+      871319872.0,
+      894786368.0,
+      1255909888.0
+    ],
+    "val_actuals": [
+      860323109.8,
+      860323109.8,
+      860323109.8,
+      860323109.8,
+      860323109.8,
+      860323109.8,
+      860323109.8,
+      1767585895.8
+    ],
+    "val_dates": [
+      "2023-10-15",
+      "2023-10-22",
+      "2023-10-29",
+      "2023-11-05",
+      "2023-11-12",
+      "2023-11-19",
+      "2023-11-26",
+      "2023-12-03"
+    ]
+  }
+}
