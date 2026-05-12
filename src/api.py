@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Body, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 app = FastAPI(
@@ -32,6 +33,7 @@ app = FastAPI(
 )
 
 REGISTRY_JSON = Path(__file__).parent.parent / "model_registry" / "registry.json"
+FRONTEND_INDEX = Path(__file__).parent.parent / "frontend" / "index.html"
 FORECAST_CACHE_TTL_SECONDS = 300
 _FORECAST_CACHE: dict[tuple[str, int], tuple[float, dict]] = {}
 
@@ -114,6 +116,13 @@ def health():
     return {"status": "ok", "service": "Sales Forecasting API v1.0"}
 
 
+@app.get("/dashboard", tags=["UI"], include_in_schema=False)
+def dashboard():
+    if not FRONTEND_INDEX.exists():
+        raise HTTPException(status_code=404, detail="Dashboard file not found.")
+    return FileResponse(FRONTEND_INDEX)
+
+
 @app.get("/health/detailed", tags=["Health"])
 def detailed_health():
     registry_exists = REGISTRY_JSON.exists()
@@ -190,14 +199,7 @@ class BulkForecastRequest(BaseModel):
     weeks: int = Field(8, ge=1, le=52)
 
 
-@app.get("/forecast/bulk", tags=["Forecast"])
-def get_bulk_forecast(request: BulkForecastRequest = Body(...)):
-    """
-    Generate forecasts for multiple states in one call.
-
-    Request body:
-    {"states": ["California", "Texas"], "weeks": 8}
-    """
+def _bulk_forecast_response(request: BulkForecastRequest) -> dict:
     registry = _load_registry()
     normalized_states = [_validate_state(state, registry) for state in request.states]
 
@@ -215,6 +217,23 @@ def get_bulk_forecast(request: BulkForecastRequest = Body(...)):
         "forecasts": forecasts,
         "errors": errors,
     }
+
+
+@app.get("/forecast/bulk", tags=["Forecast"])
+def get_bulk_forecast(request: BulkForecastRequest = Body(...)):
+    """
+    Generate forecasts for multiple states in one call.
+
+    Request body:
+    {"states": ["California", "Texas"], "weeks": 8}
+    """
+    return _bulk_forecast_response(request)
+
+
+@app.post("/forecast/bulk", tags=["Forecast"])
+def post_bulk_forecast(request: BulkForecastRequest):
+    """Browser-friendly alias for bulk forecast requests."""
+    return _bulk_forecast_response(request)
 
 
 @app.get("/forecast/{state}", tags=["Forecast"])

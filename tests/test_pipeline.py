@@ -121,6 +121,7 @@ def test_api_endpoints(monkeypatch, tmp_path):
 
     client = TestClient(api.app)
     assert client.get("/states").status_code == 200
+    assert client.get("/dashboard").status_code == 200
     assert client.get("/forecast/California").status_code == 200
     assert client.get("/models/California").status_code == 200
     bulk = client.request(
@@ -129,3 +130,8 @@ def test_api_endpoints(monkeypatch, tmp_path):
         json={"states": ["California"], "weeks": 1},
     )
     assert bulk.status_code == 200
+    post_bulk = client.post(
+        "/forecast/bulk",
+        json={"states": ["California"], "weeks": 1},
+    )
+    assert post_bulk.status_code == 200

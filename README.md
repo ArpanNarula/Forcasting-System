@@ -66,6 +66,7 @@ uvicorn src.api:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Interactive docs: http://localhost:8000/docs
+Dashboard: http://localhost:8000/dashboard
 
 ---
 
@@ -78,6 +79,7 @@ Interactive docs: http://localhost:8000/docs
 | GET | `/forecast/{state}` | 8-week sales forecast |
 | GET | `/forecast/{state}?weeks=N` | N-week sales forecast |
 | GET | `/forecast/bulk` | Bulk forecasts, request body: `{"states": [...], "weeks": 8}` |
+| POST | `/forecast/bulk` | Browser-friendly bulk forecast alias |
 | GET | `/models/{state}` | Model comparison for state |
 | GET | `/models/summary` | Best model for all states |
 | GET | `/health/detailed` | Registry status, trained state count, cache size |
