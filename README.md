@@ -1,173 +1,241 @@
-# 📦 Sales Forecasting System
+# Sales Forecasting System
 
-End-to-end time series forecasting for US state-level weekly Beverages sales.
+This project is my end-to-end time series forecasting system for the assignment. The goal was to forecast the next 8 weeks of sales for each state using historical sales data, compare multiple forecasting algorithms, automatically select the best model, and expose the predictions through a REST API.
 
----
+I designed it like a backend forecasting service instead of only a notebook. The system includes data preprocessing, feature engineering, four model families, model comparison, model registry, API endpoints, reporting outputs, Docker support, tests, and a small dashboard for explanation.
 
-## Project Structure
+## What I Built
 
-```
-forecasting_system/
-├── data/
-│   └── Forecasting_Case-_Study.xlsx      ← raw data
-├── model_registry/
-│   └── registry.json                     ← auto-generated after training
-├── notebooks/
-│   └── EDA.ipynb                         ← exploratory data analysis
-├── src/
-│   ├── preprocessing.py                  ← data loading, resampling, feature engineering
-│   ├── model_selector.py                 ← orchestrates training + model selection
-│   ├── api.py                            ← FastAPI REST service
-│   └── models/
-│       ├── sarima.py                     ← SARIMA (pmdarima auto_arima)
-│       ├── prophet_model.py              ← Facebook Prophet
-│       ├── xgboost_model.py              ← XGBoost with lag features
-│       └── lstm_model.py                 ← LSTM (TensorFlow/Keras)
-├── outputs/                              ← generated charts / Excel reports
-├── tests/
-│   └── test_pipeline.py                  ← integration tests
-├── Dockerfile
-├── docker-compose.yml
-├── train.py                              ← training entry point
-└── requirements.txt
-```
+The complete flow of the project is:
 
----
+1. Load the Excel sales dataset.
+2. Clean and resample the data into weekly state-level time series.
+3. Handle missing dates and missing values.
+4. Create time series features such as lags, rolling statistics, calendar features, and holiday flags.
+5. Train four forecasting models for each state:
+   - SARIMA
+   - Prophet
+   - XGBoost
+   - LSTM
+6. Evaluate every model using a time-based validation split.
+7. Select the best model automatically using MAPE as the primary metric.
+8. Save the selected model and metadata in a model registry.
+9. Serve forecasts through FastAPI.
+10. Show forecasts and model results through a dashboard.
 
-## Quick Start
+## Folder Explanation
 
-### 1. Install dependencies
-```bash
-pip install -r requirements.txt
-```
+### `data/`
 
-### 2. Run Training Pipeline
+This folder contains the Excel dataset used for the case study.
 
-```bash
-# Train all 43 states (takes ~30–60 min depending on hardware)
-python train.py
+The pipeline starts from this file. The data is loaded, sorted by state and date, converted into weekly frequency, and then used for model training.
 
-# Train a subset during development
-python train.py --states California Texas Florida "New York"
-```
+### `src/`
 
-The pipeline will:
-1. Load and resample the data to weekly frequency
-2. Engineer lag, rolling, and calendar features
-3. Train SARIMA, Prophet, XGBoost, and LSTM on each state
-4. Evaluate each model on a held-out 8-week validation set
-5. Select the best model per state by **MAPE**
-6. Save models to `model_registry/`
+This is the main backend source code folder.
 
-### 3. Start the API
+It contains the complete forecasting pipeline:
 
-```bash
-uvicorn src.api:app --reload --host 0.0.0.0 --port 8000
-```
+- `preprocessing.py` handles data loading, weekly resampling, missing value handling, feature engineering, and train-validation split.
+- `model_selector.py` trains all models, compares their metrics, selects the best model, and saves the registry.
+- `api.py` exposes the trained forecasting system using FastAPI.
+- `evaluation.py` generates reports, plots, and Excel forecast exports.
+- `scheduler.py` contains optional weekly retraining logic.
+- `models/` contains the individual forecasting model implementations.
 
-Interactive docs: http://localhost:8000/docs
-Dashboard: http://localhost:8000/dashboard
+### `src/models/`
 
----
+This folder contains the four required models.
 
-## API Endpoints
+- `sarima.py`: statistical time series model for trend and seasonality.
+- `prophet_model.py`: business forecasting model with trend, seasonality, and holidays.
+- `xgboost_model.py`: machine learning model using lag, rolling, calendar, and holiday features.
+- `lstm_model.py`: deep learning sequence model using engineered time series features.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Health check |
-| GET | `/states` | List all trained states |
-| GET | `/forecast/{state}` | 8-week sales forecast |
-| GET | `/forecast/{state}?weeks=N` | N-week sales forecast |
-| GET | `/forecast/bulk` | Bulk forecasts, request body: `{"states": [...], "weeks": 8}` |
-| POST | `/forecast/bulk` | Browser-friendly bulk forecast alias |
-| GET | `/models/{state}` | Model comparison for state |
-| GET | `/models/summary` | Best model for all states |
-| GET | `/health/detailed` | Registry status, trained state count, cache size |
-| GET | `/scheduler/status` | Optional weekly retraining scheduler status |
-| POST | `/retrain` | Trigger retraining (background) |
+All models follow the same structure: `train`, `predict`, `evaluate`, `save`, and `load`. This keeps the training and selection pipeline clean.
 
-### Example: Forecast California
-```bash
-curl http://localhost:8000/forecast/California
-```
+### `model_registry/`
 
-Response:
-```json
-{
-  "state": "California",
-  "model": "Prophet",
-  "n_periods": 8,
-  "forecast": [
-    {"date": "2024-01-07", "predicted_sales": 498234567.89},
-    ...
-  ]
-}
-```
+This folder stores trained model artifacts and registry metadata.
 
----
+The `registry.json` file stores information such as:
 
-## Models
+- state name
+- selected best model
+- MAPE
+- RMSE
+- model path
+- validation actuals
+- validation predictions
 
-| Model | Key Config |
-|-------|-----------|
-| **SARIMA** | auto_arima, seasonal m=52, stepwise search |
-| **Prophet** | multiplicative seasonality, US holidays, changepoint_prior=0.1 |
-| **XGBoost** | 500 estimators, recursive multi-step forecast, lag features |
-| **LSTM** | Multivariate sequence model, optional tuning, optional additive attention, MinMaxScaler, EarlyStopping |
+For the local demo, I trained California as a sample artifact. The same pipeline supports all 43 states when full training is run.
 
----
+### `outputs/`
+
+This folder contains generated reporting outputs.
+
+It includes:
+
+- forecast-vs-actual chart
+- model comparison chart
+- Excel forecast export
+
+These outputs help explain model performance and forecast results outside the API.
+
+### `frontend/`
+
+This folder contains the dashboard.
+
+The dashboard is served by FastAPI and uses the backend API directly. It shows:
+
+- API health
+- trained state count
+- state selector
+- forecast horizon controls
+- selected model
+- MAPE and RMSE
+- forecast chart
+- forecast table
+- model leaderboard
+- latest API JSON response
+
+This makes the project easier to explain visually during the video.
+
+### `tests/`
+
+This folder contains integration tests.
+
+The tests cover:
+
+- preprocessing
+- lag feature correctness
+- time-series train-validation split
+- all four model interfaces
+- API endpoints
+
+### Docker Files
+
+The project also includes Docker support with:
+
+- `Dockerfile`
+- `docker-compose.yml`
+
+These files make it possible to run the API and training service in a containerized way.
 
 ## Feature Engineering
 
-| Feature | Description |
-|---------|-------------|
-| `lag_1` | Sales 1 week ago |
-| `lag_4` | Sales 4 weeks ago (~1 month) |
-| `lag_7` | Sales 7 weeks ago |
-| `lag_30` | Sales 30 weeks ago |
-| `lag_52` | Sales 52 weeks ago (~1 year) |
-| `roll_mean_4/12` | Rolling mean over 4 / 12 weeks |
-| `roll_std_4/12` | Rolling std over 4 / 12 weeks |
-| `day_of_week` / `week_of_year` | Calendar day/week |
-| `month` / `quarter` | Calendar month and quarter |
-| `holiday_flag` | 1 if any US federal holiday in the week |
+I created the following features because time series models and machine learning models need historical and calendar-based signals:
 
----
+- `lag_1`
+- `lag_7`
+- `lag_30`
+- `lag_4`
+- `lag_52`
+- rolling mean
+- rolling standard deviation
+- day of week
+- week of year
+- month
+- quarter
+- year
+- holiday flag
 
-## Evaluation & Reporting
+The lag features help the model understand previous sales behavior. Rolling features help capture recent trend and volatility. Calendar and holiday features help capture seasonality and event-based effects.
 
-`src/evaluation.py` includes:
+## Model Training and Selection
 
-- `generate_report(registry)` for state/model/MAPE/RMSE/train-time summary
-- `plot_forecast_vs_actual(...)` for validation and 8-week forecast PNGs
-- `plot_model_comparison(registry)` for best-model MAPE comparison
-- `export_forecasts_to_excel(...)` for one-sheet-per-state forecast exports
+For every state, the system trains and evaluates four models:
 
----
+### SARIMA
 
-## Docker
+SARIMA is used as a classical statistical baseline. It is useful for time series data with trend and seasonality.
 
-```bash
-docker compose up api
-docker compose --profile training up trainer
-```
+### Prophet
 
-The compose file mounts `model_registry/`, `outputs/`, and `logs/` so trained models and reports persist outside the container.
+Prophet is used because it works well for business time series and can handle trend, seasonality, and holidays.
 
----
+### XGBoost
 
-## Tests
+XGBoost uses the engineered features such as lag values, rolling statistics, calendar variables, and holiday flags. It performs recursive forecasting by predicting one future week at a time and feeding the prediction back into the feature generation process.
 
-```bash
-python3 -m pytest
-```
+### LSTM
 
-The tests cover preprocessing, feature engineering, time-series split leakage, all four model interfaces, and API endpoints.
+LSTM is used as the deep learning model. It learns from sequences of historical data. I also added support for multivariate engineered features, optional tuning, and optional attention.
 
----
+After training, every model is evaluated on a validation window. The system selects the model with the lowest MAPE. MAPE is used as the primary metric because it is easy to interpret as percentage error.
 
-## Notes
+## API Layer
 
-- SARIMA with m=52 is slow; `approximation=True` is set for speed
-- LSTM saves the Keras model separately as `*_keras.keras` alongside the `.pkl`
-- Retraining via POST `/retrain` runs in a background thread — monitor server logs
+The API is built using FastAPI.
+
+Important endpoints include:
+
+- `/states`: returns trained states.
+- `/forecast/{state}`: returns forecast for one state.
+- `/forecast/bulk`: returns forecasts for multiple states.
+- `/models/{state}`: returns model comparison for a state.
+- `/models/summary`: returns selected model summary.
+- `/health/detailed`: returns API and registry health.
+- `/retrain`: starts retraining in the background.
+- `/dashboard`: opens the frontend dashboard.
+
+The API also includes input validation, request logging, response caching, and detailed health checks.
+
+## Dashboard
+
+The dashboard is included to make the system easier to understand.
+
+Instead of only showing JSON, the dashboard visualizes:
+
+- forecast values
+- forecast trend
+- selected best model
+- model metrics
+- model comparison
+- service health
+- live API response
+
+This helps explain both the backend and the forecasting result clearly in a demo video.
+
+## Evaluation and Reporting
+
+The evaluation module can generate:
+
+- summary report
+- forecast-vs-actual plot
+- model comparison plot
+- Excel workbook with forecasts
+
+This is useful for sharing results with non-technical users or reviewers.
+
+## Current Demo State
+
+For the local demo, I trained California and saved its best model artifact in the registry. The selected model for California is XGBoost.
+
+The project is designed to support all 43 states. Full training can be run using the same pipeline, but it takes more time because each state trains SARIMA, Prophet, XGBoost, and LSTM.
+
+## Assignment Coverage
+
+This project covers the required points from the assignment:
+
+- Multiple forecasting algorithms implemented.
+- SARIMA / Prophet / XGBoost / LSTM included.
+- Missing dates and values handled.
+- Seasonality and trend handled through model design and features.
+- Lag features created.
+- Rolling mean and standard deviation created.
+- Calendar and holiday features created.
+- Time-series validation split used.
+- Best model selected automatically using MAPE.
+- Predictions exposed through REST API.
+- Dashboard created for better understanding.
+- Reports and Excel outputs generated.
+- Integration tests added.
+- Docker support added.
+
+## Final Summary
+
+This project is a complete backend-style forecasting system. It starts from raw Excel data, prepares weekly time series, creates features, trains multiple models, compares them, saves the best model, exposes forecasts through FastAPI, and presents the result through a dashboard.
+
+The main focus of the project is not only forecasting accuracy, but also building the system in a structured and production-ready way.
